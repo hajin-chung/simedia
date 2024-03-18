@@ -1,0 +1,4 @@
+server/tmp
+
+web/.env
+web/node_modules
