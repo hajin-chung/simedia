@@ -34,13 +34,13 @@ export function Dir({ path }: DirProps) {
         <Link
           to={pathJoin(window.location.pathname, name)}
           relative="path"
-          className="items-center w-full rounded-md flex p-1 gap-1 hover:bg-neutral-800 transition-all"
+          className="items-start w-full rounded-md flex p-1 hover:bg-neutral-800 transition-all"
         >
-          <div className="w-4 h-4">
+          <div className="w-4 h-4 pt-1">
             {EntryIcons[type]}
           </div>
-          <div className="w-0.5" />
-          <p className="break-normal">{name}</p>
+          <div className="w-2" />
+          <p className="w-full break-all">{name}</p>
         </Link>
       ))
       }

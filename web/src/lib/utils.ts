@@ -6,8 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function pathJoin(...parts: string[]) {
-  var separator = '/';
-  var replace = new RegExp(separator + '{1,}', 'g');
+  const separator = '/';
+  const replace = new RegExp(separator + '{1,}', 'g');
   return parts.join(separator).replace(replace, separator);
 }
 
