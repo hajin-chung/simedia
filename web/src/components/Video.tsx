@@ -55,6 +55,7 @@ export function Video({ path }: VideoProps) {
   const [playbackRate, setPlaybackRate] = useState("1.0");
   const [isMuted, setMuted] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const str = localStorage.getItem("playerSettings");
@@ -107,12 +108,23 @@ export function Video({ path }: VideoProps) {
     setPlayed(fraction);
   }
 
+  function fullscreen() {
+    if (playerContainerRef.current === null) return
+    if (!document.fullscreenElement) {
+      document.body.requestFullscreen();
+      screen.orientation.lock("landscape-primary");
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
+
   return (
     <div
       className="w-screen h-screen relative"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onMouseMove={() => setHover(true)}
+      ref={playerContainerRef}
     >
       {showControls && (
         <div
@@ -226,6 +238,7 @@ export function Video({ path }: VideoProps) {
               <Button
                 variant="ghost"
                 className="p-1.5 hover:bg-neutral-900"
+                onClick={fullscreen}
               >
                 <LuScan size="24" />
               </Button>

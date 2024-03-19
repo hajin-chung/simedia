@@ -28,3 +28,4 @@ export function pathJoin(...segments: string[]) {
   }
   return resultParts.join('/')
 }
+
