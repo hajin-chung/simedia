@@ -10,6 +10,7 @@ export default defineConfig({
   preview: {
     port: 4000,
     strictPort: true,
+    host: true,
   },
   plugins: [react()],
   resolve: {
