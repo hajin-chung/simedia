@@ -112,7 +112,7 @@ export function Video({ path }: VideoProps) {
     if (playerContainerRef.current === null) return
     if (!document.fullscreenElement) {
       document.body.requestFullscreen();
-      screen.orientation.lock("landscape-primary");
+      (screen.orientation as any)['lock']("landscape");
     } else if (document.exitFullscreen) {
       document.exitFullscreen();
     }
