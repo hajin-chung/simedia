@@ -1,5 +1,5 @@
 import { useRef, useState, MouseEvent, useEffect } from "react";
-import { LuPlay, LuPause, LuFastForward, LuScan } from "react-icons/lu";
+import { LuPlay, LuPause, LuFastForward, LuScan, LuGalleryVerticalEnd } from "react-icons/lu";
 import ReactPlayer from "react-player";
 import { Button } from "./ui/button";
 import { Pathname } from "./Pathname";
@@ -9,6 +9,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { pathJoin } from "@/lib/utils";
+import { Dir } from "./Dir";
+import { GoMute, GoUnmute } from "react-icons/go";
 
 type VideoProps = {
   path: string;
@@ -45,15 +53,34 @@ export function Video({ path }: VideoProps) {
   const [loaded, setLoaded] = useState(0);
   const [isRateOpen, setRateOpen] = useState(false);
   const [playbackRate, setPlaybackRate] = useState("1.0");
+  const [isMuted, setMuted] = useState(false);
   const playerRef = useRef<ReactPlayer>(null);
 
   useEffect(() => {
-    if (isRateOpen) {
+    const str = localStorage.getItem("playerSettings");
+    if (str === null) {
+      return;
+    }
+    const settings = JSON.parse(str);
+    if (typeof settings.isMuted === "boolean") setMuted(settings.isMuted);
+    if (typeof settings.playbackRate === "string")
+      setPlaybackRate(settings.playbackRate);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "playerSettings",
+      JSON.stringify({ isMuted, playbackRate })
+    );
+  }, [isMuted, playbackRate]);
+
+  useEffect(() => {
+    if (isControlsHover) {
       setShowControls(true);
       return;
     }
 
-    if (isControlsHover) {
+    if (isRateOpen) {
       setShowControls(true);
       return;
     }
@@ -73,7 +100,6 @@ export function Video({ path }: VideoProps) {
 
   function handleSeek(e: MouseEvent<HTMLDivElement>) {
     if (!playerRef.current) return
-    console.log((e.clientX - 20) / e.currentTarget.clientWidth);
     const fraction = (e.clientX - 20) / e.currentTarget.clientWidth
     playerRef.current.seekTo(
       fraction, "fraction"
@@ -98,6 +124,7 @@ export function Video({ path }: VideoProps) {
         </div>
       )}
       <ReactPlayer
+        muted={isMuted}
         url={`${import.meta.env.VITE_API_URL}/data${path}`}
         width="100%"
         height="100%"
@@ -135,17 +162,20 @@ export function Video({ path }: VideoProps) {
               <div
                 className="h-full bg-opacity-0 w-full absolute top-0 left-0 hover:cursor-pointer"
                 onClick={handleSeek}
-                onMouseMove={(e) => console.log(e.clientX, e.currentTarget.clientWidth)}
               />
             </div>
           </div>
           <div className="flex w-full items-center justify-between">
             <div className="flex gap-2 ">
               <Button variant="ghost" className="p-1.5 hover:bg-neutral-900" onClick={handleClick}>
-                {playing ?
-                  <LuPause size="24" /> :
-                  <LuPlay size="24" />
-                }
+                {playing ? <LuPause size="24" /> : <LuPlay size="24" />}
+              </Button>
+              <Button
+                variant="ghost"
+                className="p-1.5 hover:bg-neutral-900"
+                onClick={() => setMuted((m) => !m)}
+              >
+                {isMuted ? <GoMute size="24" /> : <GoUnmute size="24" />}
               </Button>
               <div className="flex gap-1 items-center">
                 <p>{formatSecond(playedSeconds)}</p>
@@ -154,6 +184,20 @@ export function Video({ path }: VideoProps) {
               </div>
             </div>
             <div className="flex">
+              <Sheet onOpenChange={(open) => open && setControlsHover(true)}>
+                <SheetTrigger>
+                  <Button
+                    variant="ghost"
+                    className="p-1.5 hover:bg-neutral-900"
+                  >
+                    <LuGalleryVerticalEnd size="24" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-1/3">
+                  <div className="h-4" />
+                  <Dir path={pathJoin(path, "../")} />
+                </SheetContent>
+              </Sheet>
               <DropdownMenu onOpenChange={(open) => setRateOpen(open)}>
                 <DropdownMenuTrigger
                   onMouseEnter={() => setControlsHover(true)}
