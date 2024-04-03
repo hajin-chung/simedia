@@ -291,7 +291,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
                     <LuGalleryVerticalEnd size="24" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="w-1/3">
+                <SheetContent className="w-1/3 overflow-scroll">
                   <div className="h-4" />
                   <Dir path={pathJoin(videoPath, "../")} />
                 </SheetContent>
