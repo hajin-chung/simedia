@@ -3,9 +3,13 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Link, useLocation } from "react-router-dom";
 import { FiHome } from "react-icons/fi";
 
-export function Pathname() {
-  const { pathname } = useLocation();
-  const paths = pathname
+type PathnameProps = {
+  pathname?: string;
+}
+
+export function Pathname({ pathname }: PathnameProps) {
+  const { pathname: locationPathname } = useLocation();
+  const paths = (pathname ?? locationPathname)
     .split("/")
     .filter(path => path.length !== 0)
     .map(decodeURI);

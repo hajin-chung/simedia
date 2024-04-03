@@ -111,10 +111,6 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setPlayed(0);
-  }, [videoPath])
-
   function handleClick(e: MouseEvent<HTMLElement>) {
     if (isMobile) return;
 
@@ -170,6 +166,14 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
     setControlsVisible(false);
   }
 
+  function skip(seconds: number) {
+    if (played + seconds / totalSeconds >= 1) {
+      handleEnded()
+    } else {
+      playerRef.current?.seekTo(played + seconds / totalSeconds)
+    }
+  }
+
   return (
     <div
       className="w-screen h-screen relative"
@@ -186,7 +190,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
           ${controlsVisible ? "top-1" : "-translate-y-full"}
         `}
       >
-        <Pathname />
+        <Pathname pathname={videoPath} />
       </div>
       <div
         className="w-full h-full"
@@ -257,6 +261,20 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
                 <p>/</p>
                 <p>{formatSecond(totalSeconds)}</p>
               </div>
+            </div>
+            <div className="flex gap-2 items-center justify-center">
+              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(-85)}>
+                - 85
+              </Button>
+              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(-10)}>
+                - 10
+              </Button>
+              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(10)}>
+                + 10
+              </Button>
+              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(85)}>
+                + 85
+              </Button>
             </div>
             <div className="flex">
               <Sheet onOpenChange={(open) => setSheetOpen(open)}>
