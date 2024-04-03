@@ -98,6 +98,8 @@ type PlayerProps = {
 function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, handleEnded }: PlayerProps) {
   const inactivityTimer = useRef<NodeJS.Timeout | undefined>();
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [isSheetOpen, setSheetOpen] = useState(false);
+  const [isPlaybackRateOpen, setPlaybackRateOpen] = useState(false);
 
   const [playing, setPlaying] = useState(true);
   const [played, setPlayed] = useState(0);
@@ -107,6 +109,10 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
 
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setPlayed(0); 
+  }, [videoPath])
 
   function handleClick(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
@@ -156,15 +162,16 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
       onMouseMove={() => showControls()}
       ref={playerContainerRef}
     >
-      {controlsVisible && (
-        <div
-          onMouseEnter={() => showControls(true)}
-          onMouseLeave={() => hideControls}
-          className="absolute top-1 left-1 rounded-lg bg-neutral-900 bg-opacity-50 p-2 z-10"
-        >
-          <Pathname />
-        </div>
-      )}
+      <div
+        onMouseEnter={() => showControls(true)}
+        onMouseLeave={() => hideControls}
+        className={`
+          absolute left-1 rounded-lg bg-neutral-900 bg-opacity-50 p-2 z-10 transition-all 
+          ${controlsVisible ? "top-1" : "-translate-y-full"}
+        `}
+      >
+        <Pathname />
+      </div>
       <ReactPlayer
         muted={isMuted}
         url={`${import.meta.env.VITE_API_URL}/data${videoPath}`}
@@ -183,7 +190,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
         onClick={handleClick}
         onEnded={handleEnded}
       />
-      {controlsVisible && (
+      {(controlsVisible || isSheetOpen || isPlaybackRateOpen) && (
         <div
           className="absolute w-full bottom-0 py-2 px-5"
           onMouseEnter={() => showControls(true)}
@@ -227,7 +234,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
               </div>
             </div>
             <div className="flex">
-              <Sheet onOpenChange={(open) => open && showControls(true)}>
+              <Sheet onOpenChange={(open) => setSheetOpen(open)}>
                 <SheetTrigger>
                   <Button
                     variant="ghost"
@@ -241,7 +248,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
                   <Dir path={pathJoin(videoPath, "../")} />
                 </SheetContent>
               </Sheet>
-              <DropdownMenu>
+              <DropdownMenu onOpenChange={(open) => setPlaybackRateOpen(open)}>
                 <DropdownMenuTrigger>
                   <Button
                     variant="ghost"

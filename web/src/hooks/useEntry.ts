@@ -43,7 +43,7 @@ export function useEntries(path: string) {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/dir?path=${path}`)
         const data = await res.json() as { entries: EntryInfo[] };
-        setEntries(data.entries);
+        setEntries(data.entries.sort());
       } catch (e) {
         console.error(e)
       }

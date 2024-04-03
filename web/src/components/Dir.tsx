@@ -28,11 +28,12 @@ export function Dir({ path }: DirProps) {
       </div>
     )
   }
+
   return (
     <div className="w-full flex flex-col gap-1.5">
       {entries.map(({ name, type }) => (
         <Link
-          to={pathJoin(window.location.pathname, name)}
+          to={pathJoin(path, name)}
           relative="path"
           className="items-start w-full rounded-md flex p-1 hover:bg-neutral-800 transition-all"
         >

@@ -10,7 +10,7 @@ export function Pathname() {
     .filter(path => path.length !== 0)
     .map(decodeURI);
   const generateHref = (index: number) => {
-    return paths.slice(0, index + 1).join("/")
+    return "/" + paths.slice(0, index + 1).join("/")
   }
 
   return (
@@ -38,7 +38,7 @@ export function Pathname() {
             const href = generateHref(i);
 
             return (
-              <Fragment key={generateHref(i)}>
+              <Fragment key={href}>
                 <BreadcrumbItem key={i}>
                   {isLastItem ? (
                     <BreadcrumbPage className="text-lg font-bold">

@@ -31,15 +31,14 @@ export function pathJoin(...segments: string[]) {
 }
 
 export function getNextVideo(currentPath: string, entries: EntryInfo[]) {
-  console.log(currentPath)
   let foundCurrentPath = false;
   for (let i = 0; i < entries.length; i++) {
-    const entryPath = pathJoin(window.location.pathname, "../", entries[i].name)
+    const entryPath = decodeURI(pathJoin(currentPath, "../", entries[i].name))
     if (foundCurrentPath && entries[i].type === "video") {
       return entryPath;
     }
 
-    if (entryPath === currentPath) foundCurrentPath = true;
+    if (entryPath === decodeURI(currentPath)) foundCurrentPath = true;
   }
   return null
 }
