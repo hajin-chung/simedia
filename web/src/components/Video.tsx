@@ -1,4 +1,4 @@
-import { isMobile } from "react-device-detect"
+import { isMobile, useMobileOrientation } from "react-device-detect"
 import { useRef, useState, MouseEvent, useEffect, TouchEventHandler } from "react";
 import { LuPlay, LuPause, LuFastForward, LuScan, LuGalleryVerticalEnd } from "react-icons/lu";
 import ReactPlayer from "react-player";
@@ -97,6 +97,8 @@ type PlayerProps = {
 }
 
 function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, handleEnded }: PlayerProps) {
+  const { isLandscape } = useMobileOrientation();
+
   const inactivityTimer = useRef<NodeJS.Timeout | undefined>();
   const [controlsVisible, setControlsVisible] = useState(true);
   const [isSheetOpen, setSheetOpen] = useState(false);
@@ -217,7 +219,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
       </div>
       {(controlsVisible || isSheetOpen || isPlaybackRateOpen) && (
         <div
-          className="absolute w-full bottom-0 py-2 px-5"
+          className="absolute w-full bottom-0 py-2 px-5 bg-gradient-to-t from-black to-transparent"
           onMouseEnter={() => showControls(true)}
           onMouseLeave={() => hideControls()}
         >
@@ -262,20 +264,23 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
                 <p>{formatSecond(totalSeconds)}</p>
               </div>
             </div>
-            <div className="flex gap-2 items-center justify-center">
-              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(-85)}>
-                - 85
-              </Button>
-              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(-10)}>
-                - 10
-              </Button>
-              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(10)}>
-                + 10
-              </Button>
-              <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(85)}>
-                + 85
-              </Button>
-            </div>
+            {(!isMobile || isLandscape) && (
+              <div className="flex gap-2 items-center justify-center">
+                <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(-85)}>
+                  - 85
+                </Button>
+                <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(-10)}>
+                  - 10
+                </Button>
+                <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(10)}>
+                  + 10
+                </Button>
+                <Button variant="ghost" className="p-1.5 text-lg" onClick={() => skip(85)}>
+                  + 85
+                </Button>
+              </div>
+
+            )}
             <div className="flex">
               <Sheet onOpenChange={(open) => setSheetOpen(open)}>
                 <SheetTrigger>
