@@ -1,4 +1,5 @@
-import { useRef, useState, MouseEvent, useEffect } from "react";
+import { isMobile } from "react-device-detect"
+import { useRef, useState, MouseEvent, useEffect, TouchEventHandler } from "react";
 import { LuPlay, LuPause, LuFastForward, LuScan, LuGalleryVerticalEnd } from "react-icons/lu";
 import ReactPlayer from "react-player";
 import { Button } from "./ui/button";
@@ -111,12 +112,25 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setPlayed(0); 
+    setPlayed(0);
   }, [videoPath])
 
   function handleClick(e: MouseEvent<HTMLElement>) {
+    if (isMobile) return;
+
+    console.log("clicked!!")
     e.stopPropagation();
     setPlaying(p => !p);
+  }
+
+  const handleTouch: TouchEventHandler<HTMLElement> = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    console.log("touched!!")
+    console.log(controlsVisible);
+    if (controlsVisible) hideControls();
+    else showControls(true);
   }
 
   function handleSeek(e: MouseEvent<HTMLDivElement>) {
@@ -145,12 +159,14 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
 
     if (!persist) {
       inactivityTimer.current = setTimeout(() => {
+        console.log("timer!")
         setControlsVisible(false);
       }, 1000);
     }
   }
 
   function hideControls() {
+    console.log("hideControls()")
     setControlsVisible(false);
   }
 
@@ -172,24 +188,29 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
       >
         <Pathname />
       </div>
-      <ReactPlayer
-        muted={isMuted}
-        url={`${import.meta.env.VITE_API_URL}/data${videoPath}`}
-        width="100%"
-        height="100%"
-        playing={playing}
-        ref={playerRef}
-        progressInterval={500}
-        onDuration={(duration) => setTotalSeconds(duration)}
-        onProgress={({ played, playedSeconds, loaded }) => {
-          setPlayed(played);
-          setLoaded(loaded);
-          setPlayedSeconds(playedSeconds);
-        }}
-        playbackRate={parseFloat(playbackRate)}
+      <div
+        className="w-full h-full"
         onClick={handleClick}
-        onEnded={handleEnded}
-      />
+        onTouchEnd={handleTouch}
+      >
+        <ReactPlayer
+          muted={isMuted}
+          url={`${import.meta.env.VITE_API_URL}/data${videoPath}`}
+          width="100%"
+          height="100%"
+          playing={playing}
+          ref={playerRef}
+          progressInterval={500}
+          onDuration={(duration) => setTotalSeconds(duration)}
+          onProgress={({ played, playedSeconds, loaded }) => {
+            setPlayed(played);
+            setLoaded(loaded);
+            setPlayedSeconds(playedSeconds);
+          }}
+          playbackRate={parseFloat(playbackRate)}
+          onEnded={handleEnded}
+        />
+      </div>
       {(controlsVisible || isSheetOpen || isPlaybackRateOpen) && (
         <div
           className="absolute w-full bottom-0 py-2 px-5"
@@ -217,7 +238,11 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
           </div>
           <div className="flex w-full items-center justify-between">
             <div className="flex gap-2 ">
-              <Button variant="ghost" className="p-1.5 hover:bg-neutral-900" onClick={handleClick}>
+              <Button
+                variant="ghost"
+                className="p-1.5 hover:bg-neutral-900"
+                onClick={() => setPlaying((p) => !p)}
+              >
                 {playing ? <LuPause size="24" /> : <LuPlay size="24" />}
               </Button>
               <Button
