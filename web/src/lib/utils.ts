@@ -1,3 +1,4 @@
+import { EntryInfo } from "@/hooks/useEntry"
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -29,3 +30,16 @@ export function pathJoin(...segments: string[]) {
   return resultParts.join('/')
 }
 
+export function getNextVideo(currentPath: string, entries: EntryInfo[]) {
+  console.log(currentPath)
+  let foundCurrentPath = false;
+  for (let i = 0; i < entries.length; i++) {
+    const entryPath = pathJoin(window.location.pathname, "../", entries[i].name)
+    if (foundCurrentPath && entries[i].type === "video") {
+      return entryPath;
+    }
+
+    if (entryPath === currentPath) foundCurrentPath = true;
+  }
+  return null
+}

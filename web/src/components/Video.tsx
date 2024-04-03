@@ -14,9 +14,10 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { pathJoin } from "@/lib/utils";
+import { getNextVideo, pathJoin } from "@/lib/utils";
 import { Dir } from "./Dir";
 import { GoMute, GoUnmute } from "react-icons/go";
+import { useEntries } from "@/hooks/useEntry";
 
 type VideoProps = {
   path: string;
@@ -43,19 +44,11 @@ function formatSecond(second: number) {
 }
 
 export function Video({ path }: VideoProps) {
-  const [isHover, setHover] = useState(false);
-  const [isControlsHover, setControlsHover] = useState(false);
-  const [showControls, setShowControls] = useState(true);
-  const [playing, setPlaying] = useState(true);
-  const [played, setPlayed] = useState(0);
-  const [playedSeconds, setPlayedSeconds] = useState(0);
-  const [totalSeconds, setTotalSeconds] = useState(0);
-  const [loaded, setLoaded] = useState(0);
-  const [isRateOpen, setRateOpen] = useState(false);
+  const parentPath = pathJoin(path, "../")
+  const [videoPath, setVideoPath] = useState(path);
   const [playbackRate, setPlaybackRate] = useState("1.0");
   const [isMuted, setMuted] = useState(false);
-  const playerRef = useRef<ReactPlayer>(null);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const { entries } = useEntries(parentPath);
 
   useEffect(() => {
     const str = localStorage.getItem("playerSettings");
@@ -75,24 +68,45 @@ export function Video({ path }: VideoProps) {
     );
   }, [isMuted, playbackRate]);
 
-  useEffect(() => {
-    if (isControlsHover) {
-      setShowControls(true);
-      return;
-    }
 
-    if (isRateOpen) {
-      setShowControls(true);
-      return;
-    }
+  function handleEnded() {
+    const nextVideoPath = getNextVideo(videoPath, entries)
+    if (nextVideoPath !== null) setVideoPath(nextVideoPath)
+  }
 
-    setShowControls(isHover);
-    const timeout = setTimeout(() => {
-      setHover(false);
-      setShowControls(false);
-    }, 1000);
-    return () => clearInterval(timeout);
-  }, [isHover, isControlsHover, isRateOpen]);
+  return (
+    <Player
+      videoPath={videoPath}
+      playbackRate={playbackRate}
+      isMuted={isMuted}
+      setPlaybackRate={setPlaybackRate}
+      setMuted={setMuted}
+      handleEnded={handleEnded}
+    />
+  )
+}
+
+type PlayerProps = {
+  videoPath: string;
+  playbackRate: string;
+  isMuted: boolean;
+  setPlaybackRate: (s: string) => void;
+  setMuted: (s: boolean) => void;
+  handleEnded: () => void;
+}
+
+function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, handleEnded }: PlayerProps) {
+  const [isHover, setHover] = useState(false);
+  const [isControlsHover, setControlsHover] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [playing, setPlaying] = useState(true);
+  const [played, setPlayed] = useState(0);
+  const [playedSeconds, setPlayedSeconds] = useState(0);
+  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [loaded, setLoaded] = useState(0);
+  const [isRateOpen, setRateOpen] = useState(false);
+  const playerRef = useRef<ReactPlayer>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
 
   function handleClick(e: MouseEvent<HTMLElement>) {
     e.stopPropagation();
@@ -118,6 +132,25 @@ export function Video({ path }: VideoProps) {
     }
   }
 
+  useEffect(() => {
+    if (isControlsHover) {
+      setShowControls(true);
+      return;
+    }
+
+    if (isRateOpen) {
+      setShowControls(true);
+      return;
+    }
+
+    setShowControls(isHover);
+    const timeout = setTimeout(() => {
+      setHover(false);
+      setShowControls(false);
+    }, 1000);
+    return () => clearInterval(timeout);
+  }, [isHover, isControlsHover, isRateOpen]);
+
   return (
     <div
       className="w-screen h-screen relative"
@@ -137,7 +170,7 @@ export function Video({ path }: VideoProps) {
       )}
       <ReactPlayer
         muted={isMuted}
-        url={`${import.meta.env.VITE_API_URL}/data${path}`}
+        url={`${import.meta.env.VITE_API_URL}/data${videoPath}`}
         width="100%"
         height="100%"
         playing={playing}
@@ -151,6 +184,7 @@ export function Video({ path }: VideoProps) {
         }}
         playbackRate={parseFloat(playbackRate)}
         onClick={handleClick}
+        onEnded={handleEnded}
       />
       {showControls && (
         <div
@@ -185,7 +219,7 @@ export function Video({ path }: VideoProps) {
               <Button
                 variant="ghost"
                 className="p-1.5 hover:bg-neutral-900"
-                onClick={() => setMuted((m) => !m)}
+                onClick={() => setMuted(!isMuted)}
               >
                 {isMuted ? <GoMute size="24" /> : <GoUnmute size="24" />}
               </Button>
@@ -207,7 +241,7 @@ export function Video({ path }: VideoProps) {
                 </SheetTrigger>
                 <SheetContent className="w-1/3">
                   <div className="h-4" />
-                  <Dir path={pathJoin(path, "../")} />
+                  <Dir path={pathJoin(videoPath, "../")} />
                 </SheetContent>
               </Sheet>
               <DropdownMenu onOpenChange={(open) => setRateOpen(open)}>
