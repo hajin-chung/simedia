@@ -96,15 +96,15 @@ type PlayerProps = {
 }
 
 function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, handleEnded }: PlayerProps) {
-  const [isHover, setHover] = useState(false);
-  const [isControlsHover, setControlsHover] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const inactivityTimer = useRef<NodeJS.Timeout | undefined>();
+  const [controlsVisible, setControlsVisible] = useState(true);
+
   const [playing, setPlaying] = useState(true);
   const [played, setPlayed] = useState(0);
   const [playedSeconds, setPlayedSeconds] = useState(0);
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [loaded, setLoaded] = useState(0);
-  const [isRateOpen, setRateOpen] = useState(false);
+
   const playerRef = useRef<ReactPlayer>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
@@ -132,37 +132,34 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
     }
   }
 
-  useEffect(() => {
-    if (isControlsHover) {
-      setShowControls(true);
-      return;
-    }
+  function showControls(persist?: boolean) {
+    setControlsVisible(true);
 
-    if (isRateOpen) {
-      setShowControls(true);
-      return;
-    }
+    clearTimeout(inactivityTimer.current);
 
-    setShowControls(isHover);
-    const timeout = setTimeout(() => {
-      setHover(false);
-      setShowControls(false);
-    }, 1000);
-    return () => clearInterval(timeout);
-  }, [isHover, isControlsHover, isRateOpen]);
+    if (!persist) {
+      inactivityTimer.current = setTimeout(() => {
+        setControlsVisible(false);
+      }, 1000);
+    }
+  }
+
+  function hideControls() {
+    setControlsVisible(false);
+  }
 
   return (
     <div
       className="w-screen h-screen relative"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onMouseMove={() => setHover(true)}
+      onMouseEnter={() => showControls()}
+      onMouseLeave={hideControls}
+      onMouseMove={() => showControls()}
       ref={playerContainerRef}
     >
-      {showControls && (
+      {controlsVisible && (
         <div
-          onMouseEnter={() => setControlsHover(true)}
-          onMouseLeave={() => setControlsHover(false)}
+          onMouseEnter={() => showControls(true)}
+          onMouseLeave={() => hideControls}
           className="absolute top-1 left-1 rounded-lg bg-neutral-900 bg-opacity-50 p-2 z-10"
         >
           <Pathname />
@@ -186,11 +183,11 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
         onClick={handleClick}
         onEnded={handleEnded}
       />
-      {showControls && (
+      {controlsVisible && (
         <div
           className="absolute w-full bottom-0 py-2 px-5"
-          onMouseEnter={() => setControlsHover(true)}
-          onMouseLeave={() => setControlsHover(false)}
+          onMouseEnter={() => showControls(true)}
+          onMouseLeave={() => hideControls()}
         >
           <div className="w-full h-2 relative group">
             <div className="w-full h-1 group-hover:h-2 transition-all absolute top-0 group-hover:-top-0.5">
@@ -230,7 +227,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
               </div>
             </div>
             <div className="flex">
-              <Sheet onOpenChange={(open) => open && setControlsHover(true)}>
+              <Sheet onOpenChange={(open) => open && showControls(true)}>
                 <SheetTrigger>
                   <Button
                     variant="ghost"
@@ -244,11 +241,8 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
                   <Dir path={pathJoin(videoPath, "../")} />
                 </SheetContent>
               </Sheet>
-              <DropdownMenu onOpenChange={(open) => setRateOpen(open)}>
-                <DropdownMenuTrigger
-                  onMouseEnter={() => setControlsHover(true)}
-                  onMouseLeave={() => setControlsHover(false)}
-                >
+              <DropdownMenu>
+                <DropdownMenuTrigger>
                   <Button
                     variant="ghost"
                     className="p-1.5 hover:bg-neutral-900"
@@ -256,10 +250,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
                     <LuFastForward size="24" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  onMouseEnter={() => setHover(true)}
-                  onMouseLeave={() => setHover(false)}
-                >
+                <DropdownMenuContent>
                   {["2.0", "1.5", "1.25", "1.0", "0.5"].map((playbackRate) => (
                     <DropdownMenuItem
                       onClick={() => setPlaybackRate(playbackRate)}
