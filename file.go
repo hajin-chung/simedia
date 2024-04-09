@@ -37,14 +37,14 @@ func GetEntryType(entryPath string) (EntryType, error) {
 		return "dir", nil
 	}
 
-	extension := path.Ext(entryPath)[1:]
+	extension := path.Ext(entryPath)
 	if len(extension) == 0 {
 		return Text, nil
 	}
 	switch extension {
-	case "mp4", "ts":
+	case ".mp4", ".ts":
 		return Video, nil
-	case "jpg", "png", "jpeg":
+	case ".jpg", ".png", ".jpeg":
 		return Image, nil
 	default:
 		return Text, nil

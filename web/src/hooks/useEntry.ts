@@ -20,7 +20,8 @@ export function useEntry(path: string) {
     setLoading(true);
     (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/entry?path=${path}`)
+        console.log(import.meta.env)
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/entry?path=${path}`)
         const data = await res.json() as EntryInfo;
         setInfo(data);
       } catch (e) {
@@ -41,7 +42,7 @@ export function useEntries(path: string) {
     setLoading(true);
     (async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/dir?path=${path}`)
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/dir?path=${path}`)
         const data = await res.json() as { entries: EntryInfo[] };
         setEntries(data.entries.sort());
       } catch (e) {

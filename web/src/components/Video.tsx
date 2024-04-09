@@ -201,7 +201,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
       >
         <ReactPlayer
           muted={isMuted}
-          url={`${import.meta.env.VITE_API_URL}/data${videoPath}`}
+          url={`${import.meta.env.VITE_API_URL}/api/data${videoPath}`}
           width="100%"
           height="100%"
           playing={playing}
