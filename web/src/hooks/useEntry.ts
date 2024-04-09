@@ -20,7 +20,6 @@ export function useEntry(path: string) {
     setLoading(true);
     (async () => {
       try {
-        console.log(import.meta.env)
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/entry?path=${path}`)
         const data = await res.json() as EntryInfo;
         setInfo(data);
