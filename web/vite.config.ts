@@ -15,7 +15,6 @@ export default defineConfig(({ mode }) => {
       __APP_ENV__: JSON.stringify(env),
     },
     build: {
-      outDir: path.join(__dirname, "../public"),
       emptyOutDir: true,
     },
   }

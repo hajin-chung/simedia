@@ -1,20 +1,20 @@
-FROM golang:1.22.1
+FROM node:18-alpine as web-builder
+WORKDIR /web
+COPY web/package.json web/pnpm-lock.yaml ./
+COPY web/ ./
+RUN npm install -g pnpm && pnpm install
+RUN npm run build
 
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g pnpm
-
-WORKDIR /app
+FROM golang:1.22 as server-builder
+WORKDIR /server
 COPY . .
+RUN CGO_ENABLED=0 go build -o simedia .
 
-WORKDIR /app/web
-RUN pnpm install
-RUN pnpm run build
-
-WORKDIR /app
-RUN go build -o server .
-
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=server-builder /server/simedia .
+COPY --from=web-builder /web/dist ./public
 EXPOSE 3000
 
-CMD ["./server", "--port=3000", "--dir=/media"]
+CMD ["./simedia", "--port=3000", "--dir=/media"]
 
