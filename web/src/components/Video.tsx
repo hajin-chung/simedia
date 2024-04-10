@@ -1,7 +1,7 @@
 import { isMobile, useMobileOrientation } from "react-device-detect"
 import { useRef, useState, MouseEvent, useEffect, TouchEventHandler } from "react";
 import { LuPlay, LuPause, LuFastForward, LuScan, LuGalleryVerticalEnd } from "react-icons/lu";
-import ReactPlayer from "react-player";
+import { ReactPlayer } from "./ReactPlayer";
 import { Button } from "./ui/button";
 import { Pathname } from "./Pathname";
 import {
@@ -15,33 +15,13 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { getNextVideo, pathJoin } from "@/lib/utils";
+import { formatSecond, getNextVideo, pathJoin } from "@/lib/utils";
 import { Dir } from "./Dir";
 import { GoMute, GoUnmute } from "react-icons/go";
 import { useEntries } from "@/hooks/useEntry";
 
 type VideoProps = {
   path: string;
-}
-
-function leftPad(str: string, length: number, spacer: string) {
-  if (str.length >= length) return str;
-  let result = str;
-  for (let i = 0; i < length - str.length; i++) {
-    result = spacer + result;
-  }
-  return result
-}
-
-function formatSecond(second: number) {
-  const h = Math.floor(second / (60 * 60));
-  const m = Math.floor(second / 60);
-  const s = Math.floor(second) % 60;
-  if (h !== 0) {
-    return `${leftPad(h.toString(), 2, "0")}:${leftPad(m.toString(), 2, "0")}:${leftPad(s.toString(), 2, "0")}`
-  } else {
-    return `${leftPad(m.toString(), 2, "0")}:${leftPad(s.toString(), 2, "0")}`
-  }
 }
 
 export function Video({ path }: VideoProps) {
@@ -110,7 +90,7 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [loaded, setLoaded] = useState(0);
 
-  const playerRef = useRef<ReactPlayer>(null);
+  const playerRef = useRef<HTMLVideoElement>(null);
   const playerContainerRef = useRef<HTMLDivElement>(null);
 
   function handleClick(e: MouseEvent<HTMLElement>) {
@@ -134,9 +114,8 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
   function handleSeek(e: MouseEvent<HTMLDivElement>) {
     if (!playerRef.current) return
     const fraction = (e.clientX - 20) / e.currentTarget.clientWidth
-    playerRef.current.seekTo(
-      fraction, "fraction"
-    )
+    if (playerRef.current)
+        playerRef.current.currentTime = totalSeconds * fraction
     setPlayed(fraction);
   }
 
@@ -172,7 +151,8 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
     if (played + seconds / totalSeconds >= 1) {
       handleEnded()
     } else {
-      playerRef.current?.seekTo(played + seconds / totalSeconds)
+      if (playerRef.current)
+        playerRef.current.currentTime = playedSeconds + seconds
     }
   }
 
@@ -200,20 +180,19 @@ function Player({ videoPath, playbackRate, isMuted, setPlaybackRate, setMuted, h
         onTouchEnd={handleTouch}
       >
         <ReactPlayer
-          muted={isMuted}
+          ref={playerRef}
           url={`${import.meta.env.VITE_API_URL}/api/data${videoPath}`}
           width="100%"
           height="100%"
+          muted={isMuted}
           playing={playing}
-          ref={playerRef}
-          progressInterval={500}
+          playbackRate={parseFloat(playbackRate)}
           onDuration={(duration) => setTotalSeconds(duration)}
           onProgress={({ played, playedSeconds, loaded }) => {
             setPlayed(played);
             setLoaded(loaded);
             setPlayedSeconds(playedSeconds);
           }}
-          playbackRate={parseFloat(playbackRate)}
           onEnded={handleEnded}
         />
       </div>

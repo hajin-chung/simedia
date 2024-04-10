@@ -42,3 +42,23 @@ export function getNextVideo(currentPath: string, entries: EntryInfo[]) {
   }
   return null
 }
+
+export function leftPad(str: string, length: number, spacer: string) {
+  if (str.length >= length) return str;
+  let result = str;
+  for (let i = 0; i < length - str.length; i++) {
+    result = spacer + result;
+  }
+  return result
+}
+
+export function formatSecond(second: number) {
+  const h = Math.floor(second / (60 * 60));
+  const m = Math.floor(second / 60);
+  const s = Math.floor(second) % 60;
+  if (h !== 0) {
+    return `${leftPad(h.toString(), 2, "0")}:${leftPad(m.toString(), 2, "0")}:${leftPad(s.toString(), 2, "0")}`
+  } else {
+    return `${leftPad(m.toString(), 2, "0")}:${leftPad(s.toString(), 2, "0")}`
+  }
+}
